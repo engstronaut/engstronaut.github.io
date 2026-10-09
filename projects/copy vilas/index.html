@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Laplacian Walk</title>
+            <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.js"></script>
+		<script>
+			var boxsize = 15;
+			
+			const Nc = Math.ceil(window.innerWidth / boxsize);
+			boxsize = window.innerWidth / (Nc-1);
+			const Nr = Math.ceil(window.innerHeight / boxsize)+1;
+			const vdiff = (Nr * boxsize - window.innerHeight) / 2;
+			
+			var posc = 1;
+			var posr = Math.floor(Nr/2);
+			
+			var goalc = Nc-1;
+			var goalr = posr;
+			
+			const grid = [...Array(Nc)].map(e => Array(Nr));
+			const dirs = [[0,1],[0,-1],[1,0],[-1,0]];
+			
+			var path = [[0,posr], [1,posr]];
+
+			function setup(){
+				var canvas = createCanvas(window.innerWidth, window.innerHeight);
+				frameRate(20);
+				
+				for (let c = 0; c < Nc; c++) {
+					for (let r = 0; r < Nr; r++) {
+						if (c == 0 || r == 0 || c == Nc-1 || r == Nr-1) {
+							grid[c][r] = -1;
+						} else {
+							grid[c][r] = 0;
+						}
+					}
+				}
+				
+				grid[posc][posr] = -1;
+				grid[goalc][goalr] = 1;
+			}
+			
+			function neighborAverage(c, r) {
+				let sum = 0;
+				
+				for (let i = 0; i < 4; i++) {
+					sum += Math.max(grid[c + dirs[i][0]][r + dirs[i][1]], 0);
+				}
+				
+				return sum / 4;
+			}
+			
+			function calculateHarmonicFunction() {
+				for (let i = 0; i < Math.pow(Nc * Nr, 4/5); i++) {
+					for (let c = 0; c < Nc; c++) {
+						for (let r = 0; r < Nr; r++) {
+							if (Math.abs(grid[c][r]) < 1 && (c+r) % 2 == i % 2) {
+								grid[c][r] = neighborAverage(c, r);
+							}
+						}
+					}
+				}
+			}
+			
+			function walkStep() {
+				let Z = dirs.reduce((partialSum, d) => partialSum + Math.max(grid[posc+d[0]][posr+d[1]], 0), 0);
+				let u = Math.random() * Z;
+				
+				for (let i = 0; i < 4; i++) {
+					if (u < grid[posc+dirs[i][0]][posr+dirs[i][1]]) {
+						posc += dirs[i][0];
+						posr += dirs[i][1];
+						path.push([posc,posr]);
+						grid[posc][posr] = -1;
+						break;
+					} else {
+						u -= Math.max(grid[posc+dirs[i][0]][posr+dirs[i][1]],0);
+					}
+				}
+			}
+			
+			function drawGrid() {
+				strokeWeight(0);
+				
+				for (let c = 0; c < Nc; c++) {
+					for (let r = 0; r < Nr; r++) {
+						
+						if (grid[c][r] == -1) {
+							fill(0);
+						} else {
+							fill(Math.pow(grid[c][r], 0.2) * 255);
+						}
+						
+						rect(
+							c * boxsize - 0.5 * boxsize,
+							r * boxsize - vdiff,
+							boxsize,
+							boxsize
+						);
+					}
+				}
+			}
+			
+			function drawPath() {
+				strokeWeight(boxsize / 2);
+				stroke(255);
+				
+				for (let i = 0; i < path.length-1; i++) {
+					line(
+						path[i][0] * boxsize,
+						path[i][1] * boxsize - vdiff + 0.5 * boxsize,
+						path[i+1][0] * boxsize,
+						path[i+1][1] * boxsize - vdiff + 0.5 * boxsize
+					);
+				}
+			}
+			
+			var countdown = 10;
+			
+			function draw() {
+				if (countdown > 0) {
+					calculateHarmonicFunction();
+					
+					if (posc == goalc && posr ==goalr) {
+						countdown -= 1;
+					} else {
+						walkStep();
+					}
+					
+					drawGrid();
+					drawPath();
+				}
+			}
+		</script>
+	</head>
+	<body style="margin:0;padding:0;overflow:hidden;"></body>
+</html>
