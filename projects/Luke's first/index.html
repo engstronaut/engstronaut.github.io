@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Laplacian Walk</title>
+            <script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.js"></script>
+		<script>
+			var boxY = 100;
+            var boxX = 200;
+
+            var pointX = 200;
+            var pointY = 300;
+
+            var gravity = 1;
+            var distance = 200;
+            strokeWeight(4);
+
+            var draw= function() {
+                var squareX = boxX - 30;
+            var squareY = boxY - 20;
+                distance = dist(pointX, pointY, boxX, boxY);
+                background(255, 255, 255);
+                rect(squareX, squareY, 60, 40);
+                line(pointX, pointY, boxX, boxY);
+                pointX = mouseX;
+                
+                //fallygravity
+                boxY += abs(gravity*-(pointX-boxX)/200);
+                boxX = 200+ 200*(boxX-pointX)/distance;
+                boxY = 200+200*(boxY-pointY)/distance;
+                
+                
+
+            };
+
+		</script>
+	</head>
+	<body style="margin:0;padding:0;overflow:hidden;"></body>
+</html>
